@@ -77,8 +77,7 @@ class RollingFeatures:
     away_features=['season','datetime','date_dummy','awayteam','ftr','htr','htag','ftag','as','ast','ac','af','ay','ar','referee','week','dayofseason','day']
     general_features=['season','datetime','date_dummy','team','ftr','htr','htg','ftg','s','st','c','f','y','r','referee','week','dayofseason','day']
     def __init__(self,data_path):
-        self.data_path=data_path
-        self.data=preprocessing.process_reg(self.data_path)
+        self.data=preprocessing.process_reg(data_path)
 
     def f_one(self):
         home_data=self.data[self.home_features]
@@ -135,4 +134,7 @@ class RollingFeatures:
         return final_data
 
 
-
+def feature_selection(data):
+    features=data[[]] #select cariables
+    targets=data[['fthg','ftag']]
+    return features,targets

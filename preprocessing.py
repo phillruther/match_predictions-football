@@ -54,9 +54,6 @@ def process_reg(data_path,dt_features=None):
     return data
 
 
-    
-# def drop_leakage(data):
-#     data.drop(['ftr','htr','hs','as','hthg','htag','hst','ast','hc','ac','hf','af','hy','ay','hr','ar'])
-    
-
-
+def postprocess(data):
+    """imutation,scaling,ordinal encoding ect.."""
+    pass
