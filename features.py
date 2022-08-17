@@ -76,6 +76,8 @@ class RollingFeatures:
     home_features=['season','datetime','date_dummy','hometeam','ftr','htr','hthg','fthg','hs','hst','hc','hf','hy','hr','referee','week','dayofseason','day']
     away_features=['season','datetime','date_dummy','awayteam','ftr','htr','htag','ftag','as','ast','ac','af','ay','ar','referee','week','dayofseason','day']
     general_features=['season','datetime','date_dummy','team','ftr','htr','htg','ftg','s','st','c','f','y','r','referee','week','dayofseason','day']
+    roll_features = ['htg','ftg','s','st','c','f','y','r']
+
     def __init__(self,data_path):
         self.data=preprocessing.process_reg(data_path)
 
@@ -93,49 +95,51 @@ class RollingFeatures:
         data.reset_index(drop=True,inplace=True)
         return data
         
-    def rolling_features(self,data,features):
+    def rolling_features(self,data):
         """function calculates the rolling mean of the features and returns a dataframe with the rolling mean of the features"""
         rolling_features=pd.DataFrame()
-        for feature in features:
+        
+        for feature in self.roll_features:
             name=feature+'_rol'
             blank_frame=pd.DataFrame()
             blank_frame[name]=data.groupby('team')[feature].rolling(window=38,center=True,min_periods=20).mean().shift(-1).fillna(method='ffill')
             blank_frame.index=blank_frame.index.get_level_values(1)
             rolling_features[name]=blank_frame[name]
-        return rolling_features
+        return rolling_features,
 
 
     def f_two(self,rol_data):
         new_data=self.f_one()
         new_data=new_data.join(rol_data)
-        new_data.drop(['htg','ftg','s','st','c','f','y','r'],axis=1,inplace=True)
         n_home_data=new_data[new_data.identification==1]
         n_away_data=new_data[new_data.identification==0]
         n_home_data.drop(['identification'],axis=1,inplace=True)
         n_away_data.drop(['identification'],axis=1,inplace=True)
-
-        n_home_data.columns=list(n_home_data.columns)[:10]+['hthg','fthg','hs','hst','hc','hf','hy','hr']
-        n_away_data.columns=list(n_away_data.columns)[:10]+['htag','ftag','as','ast','ac','af','ay','ar']
-        n_home_data.rename({'team':'hometeam'},axis=1,inplace=True)
-        n_away_data.rename({'team':'awayteam'},axis=1,inplace=True)
-        n_home_data.sort_values(['datetime','week','dayofseason','day','ftr','htr','referee'],ascending=True,inplace=True)
-        n_away_data.sort_values(['datetime','week','dayofseason','day','ftr','htr','referee'],ascending=True,inplace=True)
-
+        
+        n_home_data.rename(columns={i:i+'(H)' for i in self.roll_features+['team']},inplace=True)
+        n_home_data.rename(columns={i:i+'(H)' for i in [i+'_rol' for i in self.roll_features]},inplace=True)
+        
+        n_away_data.rename(columns={i:i+'(A)' for i in self.roll_features+['team']},inplace=True)
+        n_away_data.rename(columns={i:i+'(A)' for i in [i+'_rol' for i in self.roll_features]},inplace=True)
+        
+        n_home_data.sort_values(['datetime','week','dayofseason','day','team(H)','referee'],ascending=True,inplace=True)
+        n_away_data.sort_values(['datetime','week','dayofseason','day','team(A)','referee'],ascending=True,inplace=True)
         n_home_data.reset_index(drop=True,inplace=True)
         n_away_data.reset_index(drop=True,inplace=True)
-        final_data=n_home_data.join(n_away_data[['awayteam','htag','ftag','as','ast','ac','af','ay','ar']])
+        valid_features=[i for i in list(n_away_data.columns) if '(A)' in i]
+        final_data=n_home_data.join(n_away_data[valid_features])
         return final_data
     
 
     def excecute(self):
         trans_data=self.f_one()
-        rol_data=self.rolling_features(trans_data,features=['htg','ftg','s','st','c','f','y','r'])
+        rol_data=self.rolling_features(trans_data)
         final_data=self.f_two(rol_data)
         return final_data
 
 
 def feature_selection(data):
     features=data.select_dtypes(include=['float64'])
-    features=features.drop(['fthg','ftag'],axis=1) #select variables
-    targets=data[['fthg','ftag']]
+    features=features.drop(['ftg(H)','ftg(A)'],axis=1) #select variables
+    targets=data[['ftg(H)','ftg(A)']]
     return features,targets
