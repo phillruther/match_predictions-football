@@ -138,8 +138,11 @@ class RollingFeatures:
         return final_data
 
 
-def feature_selection(data):
+def feature_selection(data,home=True):
     features=data.select_dtypes(include=['float64'])
     features=features.drop(['ftg(H)','ftg(A)'],axis=1) #select variables
-    targets=data[['ftg(H)','ftg(A)']]
+    if home==True:
+        targets=data['ftg(H)']
+    else:
+        targets=data['ftg(A)']
     return features,targets

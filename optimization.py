@@ -1,6 +1,6 @@
 from hyperopt import fmin,hp,tpe,Trials
 from hyperopt.pyll.base import scope
-from sklearn.metrics import accuracy_score
+from sklearn import metrics
 from functools import partial
 from sklearn.model_selection import KFold,cross_val_score
 from sklearn.metrics import confusion_matrix
@@ -8,29 +8,13 @@ import preprocessing
 
 
 
-param_lr={
-    
-    
-    
-    }
 
-params_randf = {
-    'n_estimators': scope.int(hp.quniform('n_estimators', 10, 100, 1)),
-    'max_depth': scope.int(hp.quniform('max_depth', 1, 50, 1)),
-    'min_samples_split': scope.int(hp.quniform('min_samples_split', 2, 20, 1)),
-    'min_samples_leaf': scope.int(hp.quniform('min_samples_leaf', 2, 20, 1)),
-    'max_features': hp.quniform('max_features', 0.1, 1, 0.1),
-    'bootstrap': hp.choice('bootstrap', [True, False]),
-    'criterion': hp.choice('criterion', ['gini', 'entropy'])}
-
- # can customize this as well
-        
-        # result['n_estimators'] = int(result['n_estimators'])
-        # result['min_samples_split'] = int(result['min_samples_split'])
-        # result['min_samples_leaf'] = int(result['min_samples_leaf'])
-        # result['criterion'] = ['gini', 'entropy'][int(result['criterion'])]
-
-
+# parameters for tuning in models in model.py
+randf_reg_params={'n_estimators':scope.int(hp.quniform('n_estimators', 10, 100, 1)), 
+               'max_depth':scope.int(hp.quniform('max_depth', 1, 50, 1)),
+               'min_samples_split':scope.int(hp.quniform('min_samples_split', 2, 20, 1)),
+               'min_samples_leaf':scope.int(hp.quniform('min_samples_leaf', 2, 20, 1)),
+               'max_features':hp.quniform('max_features', 0.1, 1, 0.1)}
 
 
 class bayes_estimation:
@@ -43,15 +27,19 @@ class bayes_estimation:
         self.model=model
         
     @staticmethod
-    def objective(params,trainx,trainy,valx,valy,model):
-        model=model.set_params(**params)
-        model.fit(trainx,trainy)
+    def objective(params,trainx,trainy,valx,valy,model,transforms=False): #transforms for model pipelines containing transformations
+        model[-1].set_params(**params) #assuming the last method of a pipeline is an estimator
+        if transforms==True:
+            model.fit_transform(trainx,trainy)
+        else:   
+            model.fit(trainx,trainy) #because we are giving a pipeline
+            
         preds=model.predict(valx)
-        acc=accuracy_score(preds,valy)
-        return (-1*acc)
+        acc=metrics.mean_squared_error(preds,valy) # this function is only for regression -for now 
+        return (acc)
     
     def parameters(self):
-        obj_func=partial(self.objective,trainx=self.trainx,trainy=self.trainy,valx=self.valx,valy=self.valy,model=self.model)
+        obj_func=partial(self.objective,trainx=self.trainx,trainy=self.trainy,valx=self.valx,valy=self.valy,model=self.model,transforms=False)
         trials=Trials()
         result = fmin(fn=obj_func,
                     space=self.params,
@@ -61,13 +49,27 @@ class bayes_estimation:
                         )
         
         return result
+    
+def format_result(result):
+    """formats result paraameters from bayesian search into any desired form- usually a change in data type"""
+    result['n_estimators'] = int(result['n_estimators'])
+    result['min_samples_split'] = int(result['min_samples_split'])
+    result['min_samples_leaf'] = int(result['min_samples_leaf'])
+    result['max_depth'] = int(result['max_depth'])
 
-    def fianl_train(self):    
-        result=self.parameters()
-        model=self.model.set_params(**result)
-        model.fit(self.trainx,self.trainy)
-        folds=KFold()
-        train_score=cross_val_score(self.model,self.trainx,self.trainy,scoring='accuracy',cv=folds).mean()
-        print(train_score)
-        val_preds=model.predict(self.valx)
-        return accuracy_score(val_preds,self.valy),confusion_matrix(val_preds,self.valy) #caustomize this if needed, this is rough
+    
+    # result['criterion'] = ['gini', 'entropy'][int(result['criterion'])]
+    return result
+    
+
+    # def fianl_train(self):    
+    #     result=self.parameters()
+    #     model=self.model.set_params(**result)
+    #     model.fit(self.trainx,self.trainy)
+    #     folds=KFold()
+    #     train_score=cross_val_score(self.model,self.trainx,self.trainy,scoring='accuracy',cv=folds).mean()
+    #     print(train_score)
+    #     val_preds=model.predict(self.valx)
+    #     return accuracy_score(val_preds,self.valy),confusion_matrix(val_preds,self.valy)
+    # 
+    # #caustomize this if needed, this is rough
