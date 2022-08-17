@@ -135,6 +135,7 @@ class RollingFeatures:
 
 
 def feature_selection(data):
-    features=data[[]] #select cariables
+    features=data.select_dtypes(include=['float64'])
+    features=features.drop(['fthg','ftag'],axis=1) #select variables
     targets=data[['fthg','ftag']]
     return features,targets

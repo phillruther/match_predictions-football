@@ -34,3 +34,8 @@ def plot_periodogram(ts, detrend='linear', ax=None):
     ax.set_ylabel("Variance")
     ax.set_title("Periodogram")
     return ax
+
+from sklearn import model_selection
+def splits(data):
+    chunk1,chunk2=model_selection.train_test_split(data,test_size=0.2,random_state=42)
+    return chunk1,chunk2
