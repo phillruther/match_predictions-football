@@ -1,3 +1,4 @@
+from pyexpat import model
 from hyperopt import fmin,hp,tpe,Trials
 from hyperopt.pyll.base import scope
 from sklearn import metrics
@@ -5,41 +6,45 @@ from functools import partial
 from sklearn.model_selection import KFold,cross_val_score
 from sklearn.metrics import confusion_matrix
 import preprocessing
+import models
 
 
 
 
 # parameters for tuning in models in model.py
-randf_reg_params={'n_estimators':scope.int(hp.quniform('n_estimators', 10, 100, 1)), 
+randf_clf_params={'n_estimators':scope.int(hp.quniform('n_estimators', 10, 100, 1)), 
                'max_depth':scope.int(hp.quniform('max_depth', 1, 50, 1)),
                'min_samples_split':scope.int(hp.quniform('min_samples_split', 2, 20, 1)),
                'min_samples_leaf':scope.int(hp.quniform('min_samples_leaf', 2, 20, 1)),
                'max_features':hp.quniform('max_features', 0.1, 1, 0.1)}
+                                                
+
 
 
 class bayes_estimation:
-    def  __init__(self,params,trainx,trainy,valx,valy,model):
+    def  __init__(self,params,trainx,trainy,valx,s_vl,model,transforms):
         self.params=params
         self.trainx=trainx
         self.trainy=trainy
         self.valx=valx
-        self.valy=valy
-        self.model=model
+        self.s_vl=s_vl
         
+        self.model=model
+        self.transforms=transforms
+      
     @staticmethod
-    def objective(params,trainx,trainy,valx,valy,model,transforms=False): #transforms for model pipelines containing transformations
+    def objective(params,trainx,trainy,valx,s_vl,model,transforms): #transforms for model pipelines containing transformations
         model[-1].set_params(**params) #assuming the last method of a pipeline is an estimator
         if transforms==True:
-            model.fit_transform(trainx,trainy)
+            model.fit(trainx,trainy)
         else:   
             model.fit(trainx,trainy) #because we are giving a pipeline
-            
         preds=model.predict(valx)
-        acc=metrics.mean_squared_error(preds,valy) # this function is only for regression -for now 
-        return (acc)
+        out=models.Train.multi_out_eval(preds,s_vl)
+        return (out)
     
     def parameters(self):
-        obj_func=partial(self.objective,trainx=self.trainx,trainy=self.trainy,valx=self.valx,valy=self.valy,model=self.model,transforms=False)
+        obj_func=partial(self.objective,trainx=self.trainx,trainy=self.trainy,valx=self.valx, s_vl=self.s_vl,model=self.model,transforms=self.transforms)
         trials=Trials()
         result = fmin(fn=obj_func,
                     space=self.params,
@@ -57,7 +62,6 @@ def format_result(result):
     result['min_samples_leaf'] = int(result['min_samples_leaf'])
     result['max_depth'] = int(result['max_depth'])
 
-    
     # result['criterion'] = ['gini', 'entropy'][int(result['criterion'])]
     return result
     

@@ -118,16 +118,15 @@ class RollingFeatures:
         
         n_home_data.rename(columns={i:i+'(H)' for i in self.roll_features+['team']},inplace=True)
         n_home_data.rename(columns={i:i+'(H)' for i in [i+'_rol' for i in self.roll_features]},inplace=True)
-        
         n_away_data.rename(columns={i:i+'(A)' for i in self.roll_features+['team']},inplace=True)
         n_away_data.rename(columns={i:i+'(A)' for i in [i+'_rol' for i in self.roll_features]},inplace=True)
-        
         n_home_data.sort_values(['datetime','week','dayofseason','day','team(H)','referee'],ascending=True,inplace=True)
         n_away_data.sort_values(['datetime','week','dayofseason','day','team(A)','referee'],ascending=True,inplace=True)
         n_home_data.reset_index(drop=True,inplace=True)
         n_away_data.reset_index(drop=True,inplace=True)
         valid_features=[i for i in list(n_away_data.columns) if '(A)' in i]
-        final_data=n_home_data.join(n_away_data[valid_features])
+        final_data=n_home_data.join(n_away_data[valid_features])        
+            
         return final_data
     
 
@@ -138,11 +137,18 @@ class RollingFeatures:
         return final_data
 
 
-def feature_selection(data,home=True):
-    features=data.select_dtypes(include=['float64'])
-    features=features.drop(['ftg(H)','ftg(A)'],axis=1) #select variables
-    if home==True:
-        targets=data['ftg(H)']
+def feature_selection(data,multinomial=True):
+    """setting up for multinomial and simple result predictions
+    multinomial is  predicting the final xhome and away score and then predicing results comparing them"""
+    features=data.select_dtypes(include=['float64'])  # this naive-only for starters do this properly later
+     #select variables
+     
+    if multinomial==True:
+        targets=data[['ftg(H)','ftg(A)']]
+        features=features.drop(['ftg(H)','ftg(A)'],axis=1)
+        sanity=data['ftr']
     else:
-        targets=data['ftg(A)']
-    return features,targets
+        targets=data['ftr']
+        features=features.drop(['ftr'],axis=1)
+    
+    return features,targets,sanity

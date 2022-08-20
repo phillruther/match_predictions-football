@@ -35,7 +35,9 @@ def plot_periodogram(ts, detrend='linear', ax=None):
     ax.set_title("Periodogram")
     return ax
 
-from sklearn import model_selection
-def splits(data):
-    chunk1,chunk2=model_selection.train_test_split(data,test_size=0.2,random_state=42)
-    return chunk1,chunk2
+import math
+def splits(data,test_size):
+    stop_index=math.ceil(len(data)*(1-test_size))
+    train=data.iloc[:stop_index]
+    test=data.iloc[stop_index:]
+    return train,test
