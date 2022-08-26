@@ -28,23 +28,25 @@ class bayes_estimation:
         self.trainy=trainy
         self.valx=valx
         self.s_vl=s_vl
-        
         self.model=model
         self.transforms=transforms
       
     @staticmethod
-    def objective(params,trainx,trainy,valx,s_vl,model,transforms): #transforms for model pipelines containing transformations
+    def objective(params,trainx,trainy,valx,s_vl,model,transforms,multi=True): #transforms for model pipelines containing transformations
         model[-1].set_params(**params) #assuming the last method of a pipeline is an estimator
         if transforms==True:
             model.fit(trainx,trainy)
         else:   
             model.fit(trainx,trainy) #because we are giving a pipeline
         preds=model.predict(valx)
-        out=models.Train.multi_out_eval(preds,s_vl)
-        return (out)
+        if multi==True:
+            out=models.Train.multi_out_eval(preds,s_vl)
+        else:
+            out=models.Train.single_out(preds,s_vl)
+        return out
     
-    def parameters(self):
-        obj_func=partial(self.objective,trainx=self.trainx,trainy=self.trainy,valx=self.valx, s_vl=self.s_vl,model=self.model,transforms=self.transforms)
+    def parameters(self,multi=True):
+        obj_func=partial(self.objective,trainx=self.trainx,trainy=self.trainy,valx=self.valx, s_vl=self.s_vl,model=self.model,transforms=self.transforms,multi=multi)
         trials=Trials()
         result = fmin(fn=obj_func,
                     space=self.params,

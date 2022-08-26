@@ -102,7 +102,7 @@ class RollingFeatures:
         for feature in self.roll_features:
             name=feature+'_rol'
             blank_frame=pd.DataFrame()
-            blank_frame[name]=data.groupby('team')[feature].rolling(window=38,center=True,min_periods=20).mean().shift(-1).fillna(method='ffill')
+            blank_frame[name]=data.groupby('team')[feature].rolling(window=10,center=True,min_periods=5).mean().shift(1).fillna(method='bfill')
             blank_frame.index=blank_frame.index.get_level_values(1)
             rolling_features[name]=blank_frame[name]
         return rolling_features,
@@ -137,18 +137,22 @@ class RollingFeatures:
         return final_data
 
 
-def feature_selection(data,multinomial=True):
+def feature_selection(data,multi=True):
     """setting up for multinomial and simple result predictions
     multinomial is  predicting the final xhome and away score and then predicing results comparing them"""
+    import collections
     features=data.select_dtypes(include=['float64'])  # this naive-only for starters do this properly later
      #select variables
      
-    if multinomial==True:
+    if multi==True:
         targets=data[['ftg(H)','ftg(A)']]
         features=features.drop(['ftg(H)','ftg(A)'],axis=1)
         sanity=data['ftr']
+        carry=collections.namedtuple('container',['features','targets','sanity'])
+        container=carry(features,targets,sanity)        
     else:
         targets=data['ftr']
-        features=features.drop(['ftr'],axis=1)
-    
-    return features,targets,sanity
+        # features=features.drop(['ftr'],axis=1)
+        carry=collections.namedtuple('container',['features','targets'])
+        container=carry(features,targets)
+    return container

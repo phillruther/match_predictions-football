@@ -40,7 +40,7 @@ class Train:
         val_preds=self.model.predict(self.valx)
         test_preds=self.model.predict(self.testx)
         
-        if self.multi:
+        if self.multi==True:
             train_acc=self.multi_out_eval(train_preds,self.s_tr)
             val_acc=self.multi_out_eval(val_preds,self.s_vl)
             test_acc=self.multi_out_eval(test_preds,self.s_ts)
@@ -51,17 +51,24 @@ class Train:
                 
         return train_acc,val_acc,test_acc
     
+    def d(x):
+        if x>0:
+            a='H'
+        elif x<0:
+            a='A'
+        elif x==0:
+            a='D'
+        return a
+    
     @staticmethod
     def multi_out_eval(preds,real):  
-        pred=preds[:,0]-preds[:,1]
-        pred=pred/abs(pred)
-        pred=pd.DataFrame(pred,columns=['preds'])
-        pred['preds'].fillna(0,inplace=True)
-        real=real.map({'H':1,'A':-1,'D':0})
+        preds=pd.DataFrame(preds,columns=['h','a'])
+        preds['r']=preds['h']-preds['a']
+        preds['r']=preds['r'].apply(lambda  x: Train.d(x))
         real.reset_index(drop=True,inplace=True)
-        acc=(real==pred['preds']).sum()/len(real)
-        a=preds
+        acc=(preds['r']==real).sum()/preds.shape[0]
         return acc
+
     
     @staticmethod
     def single_out(preds,real):
