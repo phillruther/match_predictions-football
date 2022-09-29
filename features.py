@@ -36,7 +36,7 @@ def dummy_feature_for_num(data):
 
 def estimate_variance_of_features(data,features,keep_both_features=None):
     """we wil make variance feature first and then we will estimate that feature using regression 
-        you can either keep both the variance feature and its estimate or just keep the esrimate as a feature ain the out"""
+        you can either keep both the variance feature and its estimate or just keep the esrimate as a feature in the out"""
     var_est=pd.DataFrame()
     var=pd.DataFrame()
     for feature in features:
@@ -137,22 +137,12 @@ class RollingFeatures:
         return final_data
 
 
-def feature_selection(data,multi=True):
-    """setting up for multinomial and simple result predictions
-    multinomial is  predicting the final xhome and away score and then predicing results comparing them"""
+def train_test_split(data):
     import collections
     features=data.select_dtypes(include=['float64'])  # this naive-only for starters do this properly later
      #select variables
-     
-    if multi==True:
-        targets=data[['ftg(H)','ftg(A)']]
-        features=features.drop(['ftg(H)','ftg(A)'],axis=1)
-        sanity=data['ftr']
-        carry=collections.namedtuple('container',['features','targets','sanity'])
-        container=carry(features,targets,sanity)        
-    else:
-        targets=data['ftr']
-        # features=features.drop(['ftr'],axis=1)
-        carry=collections.namedtuple('container',['features','targets'])
-        container=carry(features,targets)
+    targets=data['ftr']
+    # features=features.drop(['ftr'],axis=1)
+    carry=collections.namedtuple('container',['features','targets'])
+    container=carry(features,targets)
     return container

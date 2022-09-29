@@ -17,7 +17,8 @@ pipeline_rfclf=Pipeline([('model',ensemble.RandomForestClassifier())])
 
 # for final training and validation-  for now
 class Train:
-    def __init__(self,trainx,trainy,valx,testx,s_tr,s_vl,s_ts,model,model_parameters,transforms=False,multi=True): #if you  wann apply poly features make a separate instantiation of this class with poly features
+    def __init__(self,trainx,trainy,valx,testx,s_tr,s_vl,s_ts,model,model_parameters,transforms=False,multi=True): 
+        #if you  wann apply poly features make a separate instantiation of this class with poly features
        
         self.trainx=trainx
         self.valx=valx

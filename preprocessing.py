@@ -10,8 +10,6 @@ import numpy as np
 def season_datetime_fix(data):
     """function creates datetime features. faeatures- a date dummy as if date is starting from begginning of years  
     match week, match day of saeason, 
-    Args:
-        data (dataframe): data
     """
     data[['week','dayofseason','date_dummy']]= "" 
     data.datetime=pd.to_datetime(data.datetime).dt.date
@@ -28,29 +26,18 @@ def season_datetime_fix(data):
     return data
 
 
-def process_reg(data_path,dt_features=None):
+def process_reg(data_path):
     "features added aand rmoved and asplit the data  perticuarly for a regression setup"
 
     data=pd.read_csv(data_path,encoding='windows-1254')
     data.columns=[i.lower() for i in data.columns]
-    # infact i have to drop all all seaons until 2000-01 - caontaains null
     data.drop(data.loc[data['season'].str.contains('1993|1994|1995|1996|1997|1998|1999',regex=True)].index,inplace=True)
     data=season_datetime_fix(data)
     data['week']=data.week.astype(int)
     data['dayofseason']=data.dayofseason.astype(int)
     data['fthg']=data['fthg'].astype(float)
     data['ftag']=data['ftag'].astype(float)
-    # oe_result=OrdinalEncoder(categories=[['H','D','A'],['H','D','A']])
-    # data[['htr','ftr']]=oe_result.fit_transform(data[['htr','ftr']])
-    # oe_team=OrdinalEncoder()
-    # data[['hometeam','awayteam']]=oe_team.fit_transform(data[['hometeam','awayteam']])
-    # data.drop(['season','referee'],axis=1,inplace=True)
     data.sort_values('date_dummy',inplace=True) 
-    # if dt_features==False:
-        # data.drop(['datetime','date_dummy'],axis=1,inplace=True)
-    # trainx,testx,trainy,testy=train_test_split(data.drop(['fthg','ftag'],axis=1),data[['fthg','ftag']],test_size=0.2)
-    # trainx,valx,trainy,valy=train_test_split(trainx,trainy,test_size=0.1)
-    # return trainx,trainy,valx,valy,testx,testy
     return data
 
 
