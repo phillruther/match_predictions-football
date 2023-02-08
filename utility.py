@@ -6,6 +6,11 @@ from sklearn.naive_bayes import GaussianNB
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+
+
 
 def plot_periodogram(ts, detrend='linear', ax=None):
     # periodograms for seasonal trend determination 
