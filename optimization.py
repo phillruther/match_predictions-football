@@ -33,9 +33,6 @@ class bayes_estimation:
       
     @staticmethod
     def objective(params,trainx,trainy,valx,s_vl,model,transforms,multi=True): #transforms for model pipelines containing transformations
-      
-    def optim_on_opptuna(**params):
-      return optuna(**params
         model[-1].set_params(**params) #assuming the last method of a pipeline is an estimator
         if transforms==True:
             model.fit(trainx,trainy)
@@ -71,6 +68,14 @@ def format_result(result):
     return result
     
 
+ 
+def optim_on_opptuna(**params):
+    return optuna(**params)
+  
+def that_static_method(**params):
+    return model(**params)
+  
+    
     # def fianl_train(self):    
     #     result=self.parameters()
     #     model=self.model.set_params(**result)
@@ -82,3 +87,6 @@ def format_result(result):
     #     return accuracy_score(val_preds,self.valy),confusion_matrix(val_preds,self.valy)
     # 
     # #caustomize this if needed, this is rough
+
+    
+    
