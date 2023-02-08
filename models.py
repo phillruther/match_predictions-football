@@ -74,6 +74,11 @@ class Train:
     @staticmethod
     def single_out(preds,real):
         return metrics.accuracy_score(real,preds)
+    
+    import typing
+    def evalaute_on_metric(meteic:sklearn_metric, targets:np.array,preds:np.array)->int:
+        val=metric(preds,target)
+        return val
 
     
         
