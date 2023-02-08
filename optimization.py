@@ -33,6 +33,9 @@ class bayes_estimation:
       
     @staticmethod
     def objective(params,trainx,trainy,valx,s_vl,model,transforms,multi=True): #transforms for model pipelines containing transformations
+      
+    def optim_on_opptuna(**params):
+      return optuna(**params
         model[-1].set_params(**params) #assuming the last method of a pipeline is an estimator
         if transforms==True:
             model.fit(trainx,trainy)
