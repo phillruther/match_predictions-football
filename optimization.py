@@ -7,7 +7,8 @@ from sklearn.model_selection import KFold,cross_val_score
 from sklearn.metrics import confusion_matrix
 import preprocessing
 import models
-
+import numpy as np
+from sklearn import model_selection
 
 
 
@@ -68,6 +69,14 @@ def format_result(result):
     return result
     
 
+ 
+def optim_on_opptuna(**params):
+    return optuna(**params)
+  
+def that_static_method(**params):
+    return model(**params)
+  
+    
     # def fianl_train(self):    
     #     result=self.parameters()
     #     model=self.model.set_params(**result)
@@ -79,3 +88,6 @@ def format_result(result):
     #     return accuracy_score(val_preds,self.valy),confusion_matrix(val_preds,self.valy)
     # 
     # #caustomize this if needed, this is rough
+
+    
+    
